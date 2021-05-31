@@ -3,6 +3,7 @@ package com.codesorbit.datastore.PrefrenseData
 import android.content.Context
 import androidx.datastore.DataStore
 import androidx.datastore.preferences.*
+import com.codesorbit.datastore.application.InitApplication
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -37,6 +38,22 @@ class UserPrefrence(context: Context) {
         preferences[VALUE] ?: false
     }
 
+    val nightModeValue: Flow<Boolean> = dataStore.data.catch {
+        if (it is IOException) {
+            emit(emptyPreferences())
+        } else {
+            throw it
+        }
+    }.map { preferences ->
+        preferences[VALUE_MODE] ?: false
+    }
+
+    suspend fun saveNightMode(value: Boolean) {
+        dataStore.edit { prefrences ->
+            prefrences[VALUE_MODE] = value
+        }
+    }
+
     suspend fun saveBookMarks(bookmarks: String, value: Boolean) {
         dataStore.edit { preference ->
             preference[BOOKMARKKEY] = bookmarks
@@ -44,8 +61,10 @@ class UserPrefrence(context: Context) {
         }
     }
 
+
     companion object {
         val BOOKMARKKEY = preferencesKey<String>("key_bookmark")
         val VALUE = preferencesKey<Boolean>("key_value")
+        val VALUE_MODE = preferencesKey<Boolean>("NIGHT_MODE")
     }
 }
